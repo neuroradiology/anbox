@@ -17,19 +17,28 @@
 
 #include "anbox/common/mount_entry.h"
 #include "anbox/common/loop_device.h"
+#include "anbox/logger.h"
 
 #include <sys/mount.h>
 
 namespace anbox {
 namespace common {
 std::shared_ptr<MountEntry> MountEntry::create(const boost::filesystem::path &src, const boost::filesystem::path &target,
-                                               const std::string &fs_type, unsigned long flags) {
+                                               const std::string &fs_type, unsigned long flags, const std::string &data) {
   auto entry = std::shared_ptr<MountEntry>(new MountEntry(target));
   if (!entry)
     return nullptr;
 
-  if (::mount(src.c_str(), target.c_str(), !fs_type.empty() ? fs_type.c_str() : nullptr, flags, nullptr) != 0)
+  const void *mount_data = nullptr;
+  if (!data.empty())
+    mount_data = reinterpret_cast<const void*>(data.c_str());
+
+  DEBUG("Mounting %s on %s ...", src, target);
+
+  if (::mount(src.c_str(), target.c_str(), !fs_type.empty() ? fs_type.c_str() : nullptr, flags, mount_data) < 0) {
+    ERROR("Failed to mount %s: %s", target, strerror(errno));
     return nullptr;
+  }
 
   entry->active_ = true;
 
@@ -37,12 +46,22 @@ std::shared_ptr<MountEntry> MountEntry::create(const boost::filesystem::path &sr
 }
 
 std::shared_ptr<MountEntry> MountEntry::create(const std::shared_ptr<LoopDevice> &loop, const boost::filesystem::path &target,
-                                               const std::string &fs_type, unsigned long flags) {
-  auto entry = create(loop->path(), target, fs_type, flags);
+                                               const std::string &fs_type, unsigned long flags, const std::string &data) {
+  auto entry = create(loop->path(), target, fs_type, flags, data);
   if (!entry)
     return nullptr;
 
   entry->loop_ = loop;
+  return entry;
+}
+
+std::shared_ptr<MountEntry> MountEntry::create(const boost::filesystem::path &target) {
+  auto entry = std::shared_ptr<MountEntry>(new MountEntry(target));
+  if (!entry)
+    return nullptr;
+
+  entry->active_ = true;
+
   return entry;
 }
 

@@ -36,12 +36,18 @@ class ContainerManager : public cli::CommandWithFlagsAndAction {
 
  private:
   bool setup_mounts();
+  bool setup_rootfs_overlay();
 
   std::string android_img_path_;
   std::string data_path_;
   std::shared_ptr<common::LoopDevice> android_img_loop_dev_;
   std::vector<std::shared_ptr<common::MountEntry>> mounts_;
   bool privileged_ = false;
+  bool daemon_ = false;
+  bool enable_rootfs_overlay_ = false;
+  std::string container_network_address_;
+  std::string container_network_gateway_;
+  std::string container_network_dns_servers_;
 };
 }  // namespace cmds
 }  // namespace anbox

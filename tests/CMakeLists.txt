@@ -1,8 +1,11 @@
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare")
+
 include_directories(
   ${Boost_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/external/android-emugl/host/include
   ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/external/glm
 )
 
 macro(ANBOX_ADD_TEST test_name src)
@@ -16,8 +19,8 @@ macro(ANBOX_ADD_TEST test_name src)
 
     anbox-core
 
-    gmock
-    gmock_main
+    ${GMOCK_LIBRARIES}
+    ${GTEST_BOTH_LIBRARIES}
 
     ${ARGN}
 

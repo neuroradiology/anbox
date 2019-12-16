@@ -18,7 +18,7 @@
 #include <signal.h>
 #include <sys/prctl.h>
 
-#include "anbox/config.h"
+#include "anbox/system_configuration.h"
 #include "anbox/daemon.h"
 #include "anbox/logger.h"
 
@@ -27,6 +27,8 @@
 #include "anbox/cmds/system_info.h"
 #include "anbox/cmds/launch.h"
 #include "anbox/cmds/version.h"
+#include "anbox/cmds/wait_ready.h"
+#include "anbox/cmds/check_features.h"
 
 #include <boost/filesystem.hpp>
 
@@ -40,8 +42,9 @@ Daemon::Daemon()
      .command(std::make_shared<cmds::SessionManager>())
      .command(std::make_shared<cmds::Launch>())
      .command(std::make_shared<cmds::ContainerManager>())
-     .command(std::make_shared<cmds::SystemInfo>());
-
+     .command(std::make_shared<cmds::SystemInfo>())
+     .command(std::make_shared<cmds::WaitReady>())
+     .command(std::make_shared<cmds::CheckFeatures>());
 
   Log().Init(anbox::Logger::Severity::kWarning);
 
@@ -52,7 +55,7 @@ Daemon::Daemon()
 
 int Daemon::Run(const std::vector<std::string> &arguments) try {
   auto argv = arguments;
-  if (arguments.size() == 0) argv = {"run"};
+  if (arguments.size() == 0) argv = {"help"};
   return cmd.run({std::cin, std::cout, argv});
 } catch (std::exception &err) {
   ERROR("%s", err.what());

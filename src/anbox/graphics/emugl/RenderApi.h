@@ -21,7 +21,7 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include "emugl/common/logging.h"
+#include "external/android-emugl/shared/emugl/common/logging.h"
 
 typedef struct {
   logger_t coarse;
@@ -37,7 +37,7 @@ struct GLLibrary {
   boost::filesystem::path path;
 };
 
-std::vector<GLLibrary> default_gl_libraries(bool no_glesv1 = false);
+std::vector<GLLibrary> default_gl_libraries();
 
 bool initialize(const std::vector<GLLibrary> &libs, emugl_logger_struct *log_funcs, logger_t crash_func);
 }  // namespace emugl

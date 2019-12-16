@@ -16,7 +16,7 @@
  */
 
 #include "anbox/bridge/android_api_stub.h"
-#include "anbox/config.h"
+#include "anbox/system_configuration.h"
 #include "anbox/logger.h"
 #include "anbox/rpc/channel.h"
 #include "anbox/utils.h"
@@ -26,8 +26,16 @@
 #include "anbox_rpc.pb.h"
 
 #include <boost/filesystem.hpp>
+#ifdef USE_PROTOBUF_CALLBACK_HEADER
+#include <google/protobuf/stubs/callback.h>
+#endif
+
 
 namespace fs = boost::filesystem;
+
+namespace {
+constexpr const std::chrono::milliseconds default_rpc_call_timeout{30000};
+} // namespace
 
 namespace anbox {
 namespace bridge {
@@ -103,7 +111,9 @@ void AndroidApiStub::launch(const android::Intent &intent,
       google::protobuf::NewCallback(this, &AndroidApiStub::application_launched,
                                     c.get()));
 
-  launch_wait_handle_.wait_for_all();
+  launch_wait_handle_.wait_for_pending(default_rpc_call_timeout);
+  if (!launch_wait_handle_.has_result())
+    throw std::runtime_error("RPC call timed out");
 
   if (c->response->has_error()) throw std::runtime_error(c->response->error());
 }
@@ -135,7 +145,9 @@ void AndroidApiStub::set_focused_task(const std::int32_t &id) {
                         google::protobuf::NewCallback(
                             this, &AndroidApiStub::focused_task_set, c.get()));
 
-  set_focused_task_handle_.wait_for_all();
+  set_focused_task_handle_.wait_for_pending(default_rpc_call_timeout);
+  if (!set_focused_task_handle_.has_result())
+    throw std::runtime_error("RPC call timed out");
 
   if (c->response->has_error()) throw std::runtime_error(c->response->error());
 }
@@ -162,7 +174,9 @@ void AndroidApiStub::remove_task(const std::int32_t &id) {
                         google::protobuf::NewCallback(
                             this, &AndroidApiStub::task_removed, c.get()));
 
-  remove_task_handle_.wait_for_all();
+  remove_task_handle_.wait_for_pending(default_rpc_call_timeout);
+  if (!remove_task_handle_.has_result())
+    throw std::runtime_error("RPC call timed out");
 
   if (c->response->has_error()) throw std::runtime_error(c->response->error());
 }
@@ -198,7 +212,9 @@ void AndroidApiStub::resize_task(const std::int32_t &id,
                         google::protobuf::NewCallback(
                             this, &AndroidApiStub::task_resized, c.get()));
 
-  resize_task_handle_.wait_for_all();
+  resize_task_handle_.wait_for_pending(default_rpc_call_timeout);
+  if (!resize_task_handle_.has_result())
+    throw std::runtime_error("RPC call timed out");
 
   if (c->response->has_error()) throw std::runtime_error(c->response->error());
 }
